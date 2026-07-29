@@ -53,6 +53,16 @@ export default async function AssessmentDetailPage({
           <Button asChild>
             <a href={`/api/reports/${run.id}?format=html`}>Executive HTML</a>
           </Button>
+          <Button variant="outline" asChild>
+            <a href={`/api/reports/${run.id}?format=pdf-executive`}>
+              Executive PDF
+            </a>
+          </Button>
+          <Button variant="outline" asChild>
+            <a href={`/api/reports/${run.id}?format=pdf-technical`}>
+              Technical PDF
+            </a>
+          </Button>
         </div>
       </div>
 
