@@ -79,4 +79,16 @@ describe("control library", () => {
     });
     expect(result.status).toBe("pass");
   });
+
+  it("management API absence is not_assessed not pass", () => {
+    const c = getControlById("sb.management_api_capability");
+    const result = c!.evaluate({ hasManagement: false, canCall: false });
+    expect(result.status).toBe("not_assessed");
+  });
+
+  it("log drain is always manual_review", () => {
+    const c = getControlById("sb.log_drain_evidence");
+    expect(c!.evaluate({ hasManagement: true }).status).toBe("manual_review");
+  });
 });
+
