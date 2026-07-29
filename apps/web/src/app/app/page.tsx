@@ -10,6 +10,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { TrendChart } from "@/components/dashboard/trend-chart";
+import { computeTechnicalPosture } from "@supacompliant/shared";
 
 export default function OverviewPage() {
   const posture = latestPosture();
@@ -18,6 +20,20 @@ export default function OverviewPage() {
     posture.technicalPassRate != null && prev.technicalPassRate != null
       ? posture.technicalPassRate - prev.technicalPassRate
       : null;
+
+  const trend = demoRuns.map((run) => {
+    const p = computeTechnicalPosture(
+      run.results.map((r) => ({ status: r.status, severity: r.severity })),
+    );
+    return {
+      runId: run.id,
+      label: run.label.replace("Assessment ", "#"),
+      passRate: p.technicalPassRate,
+      critical: p.criticalFindings,
+      unknownOrError: p.unknownOrError,
+      fails: p.fail,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -63,6 +79,15 @@ export default function OverviewPage() {
           hint="Organisational evidence still required"
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Historical posture trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TrendChart data={trend} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
