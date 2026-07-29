@@ -1,18 +1,15 @@
 import { demoProject, demoOrg } from "@/lib/demo-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ConnectionWizard } from "@/components/connections/connection-wizard";
 
 export default function ProjectsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {demoOrg.name} · environments and connections
-          </p>
-        </div>
-        <Button>New project</Button>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {demoOrg.name} · environments and connections
+        </p>
       </div>
       <Card>
         <CardHeader>
@@ -35,6 +32,15 @@ export default function ProjectsPage() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Connection wizard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ConnectionWizard />
         </CardContent>
       </Card>
     </div>
