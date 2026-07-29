@@ -3,6 +3,7 @@ import {
   exportCsvControls,
   exportExecutiveHtml,
   exportJsonReport,
+  exportPdfReport,
   exportSarif,
 } from "@supacompliant/reporting";
 import type { CompletedRun, ControlExecutionResult } from "@supacompliant/assessment-engine";
@@ -84,6 +85,24 @@ export async function GET(
   if (format === "html") {
     return new NextResponse(exportExecutiveHtml(completed), {
       headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  if (format === "pdf" || format === "pdf-executive") {
+    const buf = exportPdfReport(completed, "executive");
+    return new NextResponse(new Uint8Array(buf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${runId}-executive.pdf"`,
+      },
+    });
+  }
+  if (format === "pdf-technical") {
+    const buf = exportPdfReport(completed, "technical");
+    return new NextResponse(new Uint8Array(buf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${runId}-technical.pdf"`,
+      },
     });
   }
   return new NextResponse(exportJsonReport(completed), {
