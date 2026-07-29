@@ -1,25 +1,31 @@
 import Link from "next/link";
 import { demoRuns, latestPosture } from "@/lib/demo-data";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeTechnicalPosture } from "@supacompliant/shared";
+import { RunPanel } from "@/components/assessments/run-panel";
 
 export default function AssessmentsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Assessments</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Immutable point-in-time runs with cryptographic digests
-          </p>
-        </div>
-        <Button>New assessment</Button>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Assessments</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Immutable point-in-time runs with cryptographic digests
+        </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Run history</CardTitle>
+          <CardTitle>New live assessment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RunPanel />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Demo run history</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
