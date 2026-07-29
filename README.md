@@ -1,6 +1,12 @@
 # SupaCompliant
 
-**Continuous database assurance for Supabase and PostgreSQL.**
+<p align="center">
+  <img src="docs/assets/supacompliant-hero.jpg" alt="SupaCompliant — shield with lightning bolt, surrounded by lock, database, people, and checklist icons" width="720" />
+</p>
+
+<p align="center">
+  <strong>Continuous database assurance for Supabase and PostgreSQL.</strong>
+</p>
 
 > ## Not affiliated with Supabase
 >
