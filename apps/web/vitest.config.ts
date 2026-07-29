@@ -4,6 +4,8 @@ import path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    exclude: ["e2e/**", "node_modules/**", ".next/**"],
   },
   resolve: {
     alias: {
@@ -11,3 +13,4 @@ export default defineConfig({
     },
   },
 });
+

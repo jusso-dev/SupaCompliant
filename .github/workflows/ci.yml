@@ -42,3 +42,12 @@ jobs:
 
       - name: RLS coverage
         run: pnpm check:rls
+
+      - name: Install Playwright browser
+        run: pnpm --filter @supacompliant/web exec playwright install chromium --with-deps
+
+      - name: Playwright e2e
+        run: pnpm --filter @supacompliant/web test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+
