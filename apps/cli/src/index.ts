@@ -29,20 +29,36 @@ function usage(): never {
   console.log(`supacompliant — Continuous database assurance
 
 Usage:
+  supacompliant version
+  supacompliant login
+  supacompliant project list
   supacompliant controls list
   supacompliant controls explain <control-id>
   supacompliant connection test
   supacompliant assess [--fail-on critical|high] [--output json|csv|sarif] [--out path]
+  supacompliant findings list
+  supacompliant report download <run-id> [--format json|sarif|csv]
 
 Environment for assess / connection test:
   SUPACOMPLIANT_DATABASE_URL   postgres://user:pass@host:5432/db
   SUPACOMPLIANT_ALLOW_PRIVATE  set to 1 for local/private targets only
   SUPACOMPLIANT_PROJECT_REF    optional Supabase project ref
   SUPACOMPLIANT_MANAGEMENT_TOKEN  optional (never printed)
+  SUPACOMPLIANT_API_URL        optional API base for login/project list
+  SUPACOMPLIANT_API_TOKEN      optional API token (never printed)
 
 Never logs passwords or tokens.
+Independent open-source — not affiliated with Supabase, Inc.
 `);
   process.exit(1);
+}
+
+function redactError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg
+    .replace(/postgres(?:ql)?:\/\/[^\s'"]+/gi, "[REDACTED_URL]")
+    .replace(/password[=:][^\s&]+/gi, "password=[REDACTED]")
+    .replace(/Bearer\s+\S+/gi, "Bearer [REDACTED]");
 }
 
 function parseDatabaseUrl(url: string): {
@@ -213,9 +229,61 @@ async function cmdAssess(args: string[]): Promise<void> {
   }
 }
 
+async function cmdVersion(): Promise<void> {
+  console.log(`supacompliant CLI`);
+  console.log(`control-library ${CONTROL_LIBRARY_VERSION}`);
+  console.log(`framework-library ${FRAMEWORK_LIBRARY_VERSION}`);
+  console.log(`controls ${allControls.length}`);
+}
+
+async function cmdLogin(): Promise<void> {
+  const api = process.env.SUPACOMPLIANT_API_URL;
+  const token = process.env.SUPACOMPLIANT_API_TOKEN;
+  if (!api || !token) {
+    console.error(
+      "Set SUPACOMPLIANT_API_URL and SUPACOMPLIANT_API_TOKEN (token never printed).",
+    );
+    process.exit(2);
+  }
+  const res = await fetch(`${api.replace(/\/$/, "")}/api/v1`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    console.error(`Login probe failed: HTTP ${res.status}`);
+    process.exit(2);
+  }
+  console.error("API reachable. Token accepted for discovery (not stored).");
+}
+
+async function cmdProjectList(): Promise<void> {
+  const api = process.env.SUPACOMPLIANT_API_URL;
+  if (!api) {
+    console.log("demo-project\tCustomer Platform\t(local demo — set SUPACOMPLIANT_API_URL for live)");
+    return;
+  }
+  const res = await fetch(`${api.replace(/\/$/, "")}/api/v1/assessments`);
+  if (!res.ok) {
+    console.error(`project list failed: HTTP ${res.status}`);
+    process.exit(2);
+  }
+  const data = (await res.json()) as { assessments?: Array<{ id: string }> };
+  console.log(`${data.assessments?.length ?? 0} assessments visible via API`);
+}
+
+async function cmdFindingsList(): Promise<void> {
+  console.log(
+    "Use web UI or GET /api/findings when API is configured. Demo findings are in the seeded workspace.",
+  );
+}
+
 async function main(): Promise<void> {
   const [cmd, sub, ...rest] = process.argv.slice(2);
   if (!cmd) usage();
+  if (cmd === "version" || cmd === "--version" || cmd === "-V")
+    return cmdVersion();
+  if (cmd === "login") return cmdLogin();
+  if (cmd === "project" && sub === "list") return cmdProjectList();
+  if (cmd === "findings" && sub === "list") return cmdFindingsList();
   if (cmd === "controls" && sub === "list") return cmdControlsList();
   if (cmd === "controls" && sub === "explain" && rest[0]) {
     return cmdControlsExplain(rest[0]);
@@ -226,6 +294,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((e) => {
-  console.error(e instanceof Error ? e.message : e);
+  console.error(redactError(e));
   process.exit(1);
 });
+

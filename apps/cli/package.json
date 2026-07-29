@@ -1,10 +1,17 @@
 {
   "name": "@supacompliant/cli",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "description": "CLI for SupaCompliant — continuous database assurance (not affiliated with Supabase, Inc.)",
   "type": "module",
   "bin": {
     "supacompliant": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -13,6 +20,7 @@
     "test": "vitest run",
     "lint": "echo 'ok'"
   },
+
   "dependencies": {
     "@supacompliant/assessment-engine": "workspace:*",
     "@supacompliant/control-library": "workspace:*",
