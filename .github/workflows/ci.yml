@@ -10,19 +10,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Version comes from package.json "packageManager" — do not also set `version` here
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install
-      - run: pnpm --filter @supacompliant/shared build
-      - run: pnpm --filter @supacompliant/assessment-engine build
-      - run: pnpm --filter @supacompliant/control-library build
-      - run: pnpm --filter @supacompliant/framework-mappings build
-      - run: pnpm --filter @supacompliant/reporting build
-      - run: pnpm --filter @supacompliant/database build
-      - run: pnpm test
-      - run: pnpm check:rls
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: |
+          pnpm --filter @supacompliant/shared build
+          pnpm --filter @supacompliant/assessment-engine build
+          pnpm --filter @supacompliant/control-library build
+          pnpm --filter @supacompliant/framework-mappings build
+          pnpm --filter @supacompliant/reporting build
+          pnpm --filter @supacompliant/database build
+
+      - name: Build apps
+        run: |
+          pnpm --filter @supacompliant/cli build
+          pnpm --filter @supacompliant/worker build
+          pnpm --filter @supacompliant/web build
+
+      - name: Test
+        run: pnpm test
+
+      - name: RLS coverage
+        run: pnpm check:rls
