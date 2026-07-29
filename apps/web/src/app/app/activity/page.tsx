@@ -1,5 +1,6 @@
 import { demoComments, demoRuns } from "@/lib/demo-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CommentPanel } from "@/components/collaboration/comment-panel";
 
 export default function ActivityPage() {
   const events = [
@@ -22,7 +23,7 @@ export default function ActivityPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Auditable organisation events
+          Auditable organisation events and control discussions
         </p>
       </div>
       <Card>
@@ -39,6 +40,14 @@ export default function ActivityPage() {
               </p>
             </div>
           ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Discussion</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CommentPanel controlId="pg.rls.tables_without_rls" />
         </CardContent>
       </Card>
     </div>
