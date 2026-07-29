@@ -7,11 +7,19 @@ import { Badge } from "@/components/ui/badge";
 export default function FrameworksPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Frameworks</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Transparent, versioned mappings. Contribution only — not certification.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Frameworks</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Transparent, versioned mappings. Contribution only — not certification.
+          </p>
+        </div>
+        <a
+          href="/app/frameworks/essential-eight"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          Essential Eight contribution view →
+        </a>
       </div>
 
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
