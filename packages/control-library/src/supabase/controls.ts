@@ -640,4 +640,291 @@ export const supabaseControls = [
       ),
     ],
   }),
+
+  defineControl({
+    id: "sb.auth.audit_log_table",
+    version: "1.0.0",
+    title: "Auth audit log table availability",
+    description:
+      "Checks whether auth.audit_log_entries (or equivalent) is present and not granted to anon.",
+    rationale: "Auth audit trails support incident investigation for identity events.",
+    severity: "medium",
+    categories: ["supabase", "logging"],
+    targets: ["supabase"],
+    requiredCapabilities: ["basic_catalogue"],
+    collect: async (ctx) => {
+      const exists = await ctx.query<{ exists: boolean }>(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = 'auth' AND table_name = 'audit_log_entries'
+        ) AS exists
+      `);
+      let grants: Array<{ grantee: string; privilege_type: string }> = [];
+      if (exists[0]?.exists) {
+        grants = await ctx.query(`
+          SELECT grantee, privilege_type
+          FROM information_schema.role_table_grants
+          WHERE table_schema = 'auth' AND table_name = 'audit_log_entries'
+            AND grantee IN ('anon', 'authenticated', 'PUBLIC')
+        `);
+      }
+      return { exists: Boolean(exists[0]?.exists), grants };
+    },
+    evaluate: (input) => {
+      if (!input.exists) {
+        return evalResult("manual_review", {
+          summary: "auth.audit_log_entries not found — confirm Auth audit export path",
+          expected: "Auth audit log available and restricted",
+          actual: "table missing",
+          evidence: input,
+          evidenceSummary: "missing table",
+        });
+      }
+      if (input.grants.length > 0) {
+        return evalResult("fail", {
+          summary: "API roles have grants on auth.audit_log_entries",
+          expected: "Auth audit log not exposed to anon/authenticated",
+          actual: input.grants.map((g: { grantee: string }) => g.grantee).join(", "),
+          evidence: input,
+          evidenceSummary: "excessive grants",
+        });
+      }
+      return evalResult("pass", {
+        summary: "Auth audit log table present without API role grants",
+        expected: "Auth audit log available and restricted",
+        actual: "present, restricted",
+        evidence: input,
+        evidenceSummary: "ok",
+      });
+    },
+    remediation: rem("Restrict auth audit log access", [
+      "REVOKE ALL ON auth.audit_log_entries FROM anon, authenticated, PUBLIC",
+      "Export logs via platform log drains",
+    ]),
+    mappings: [
+      map(
+        "ism",
+        "2025",
+        "Event Logging",
+        "partially_supports",
+        "Identity event logging capability",
+        "https://www.cyber.gov.au/ism",
+      ),
+    ],
+  }),
+
+  defineControl({
+    id: "sb.storage.policies_present",
+    version: "1.0.0",
+    title: "Storage object policies inventory",
+    description: "Counts RLS policies on storage.objects when Storage is used.",
+    rationale: "Buckets without object policies may default to unexpected access.",
+    severity: "high",
+    categories: ["supabase", "data_protection"],
+    targets: ["supabase"],
+    requiredCapabilities: ["basic_catalogue"],
+    collect: async (ctx) => {
+      try {
+        const rows = await ctx.query<{ polcount: string }>(`
+          SELECT count(*)::text AS polcount
+          FROM pg_policy p
+          JOIN pg_class c ON c.oid = p.polrelid
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+          WHERE n.nspname = 'storage' AND c.relname = 'objects'
+        `);
+        return {
+          policyCount: Number(rows[0]?.polcount ?? 0),
+          readable: true,
+        };
+      } catch {
+        return { policyCount: 0, readable: false };
+      }
+    },
+    evaluate: (input) => {
+      if (!input.readable) {
+        return evalResult("unknown", {
+          summary: "Cannot read storage.objects policies",
+          expected: "Documented storage policies for each bucket",
+          actual: "unreadable",
+          evidence: input,
+          evidenceSummary: "unreadable",
+        });
+      }
+      if (input.policyCount === 0) {
+        return evalResult("warning", {
+          summary: "No policies on storage.objects",
+          expected: "Documented storage policies for each bucket",
+          actual: "0 policies",
+          evidence: input,
+          evidenceSummary: "0 policies",
+        });
+      }
+      return evalResult("pass", {
+        summary: `${input.policyCount} storage.objects policies`,
+        expected: "Documented storage policies for each bucket",
+        actual: String(input.policyCount),
+        evidence: input,
+        evidenceSummary: String(input.policyCount),
+      });
+    },
+    remediation: rem("Add storage policies per bucket path", [
+      "CREATE POLICY ... ON storage.objects",
+    ]),
+    mappings: [
+      map(
+        "owasp-api",
+        "2023",
+        "API1",
+        "partially_supports",
+        "Object storage authorisation",
+        "https://owasp.org/API-Security/",
+      ),
+    ],
+  }),
+
+  defineControl({
+    id: "sb.extensions.supabase_set",
+    version: "1.0.0",
+    title: "Supabase extension inventory",
+    description:
+      "Records common Supabase extensions (pgcrypto, pg_graphql, supabase_vault, etc.).",
+    rationale: "Extension inventory supports patching and attack-surface review.",
+    severity: "informational",
+    categories: ["supabase", "hardening"],
+    targets: ["supabase"],
+    requiredCapabilities: ["basic_catalogue"],
+    collect: async (ctx) => {
+      const interesting = [
+        "pgcrypto",
+        "pg_graphql",
+        "pg_stat_statements",
+        "supabase_vault",
+        "uuid-ossp",
+        "pgjwt",
+        "pgsodium",
+        "pg_net",
+        "http",
+      ];
+      return {
+        present: ctx.extensions.filter((e) => interesting.includes(e)),
+        all: ctx.extensions,
+      };
+    },
+    evaluate: (input) =>
+      evalResult("pass", {
+        summary: `Supabase-related extensions: ${input.present.join(", ") || "none of watched set"}`,
+        expected: "Known extension set",
+        actual: input.present.join(", ") || "none",
+        evidence: input,
+        evidenceSummary: `${input.present.length} watched extensions`,
+        recommendations: ["Review each extension for necessity"],
+      }),
+    remediation: rem("Remove unused extensions", [
+      "DROP EXTENSION ... after impact review",
+    ]),
+    mappings: [
+      map(
+        "cis-controls",
+        "8.0",
+        "2.2",
+        "evidence_contributes",
+        "Software inventory",
+        "https://www.cisecurity.org/controls/v8",
+        "low",
+      ),
+    ],
+  }),
+
+  defineControl({
+    id: "sb.management_api_capability",
+    version: "1.0.0",
+    title: "Management API capability detection",
+    description:
+      "Records whether a Management API credential was provided for this run.",
+    rationale:
+      "Without Management API, Auth project settings and log drains cannot be fully assessed.",
+    severity: "informational",
+    categories: ["supabase"],
+    targets: ["supabase"],
+    requiredCapabilities: ["basic_catalogue"],
+    collect: async (ctx) => ({
+      hasManagement: ctx.capabilities.has("supabase_management"),
+      canCall: Boolean(ctx.managementGet),
+    }),
+    evaluate: (input) => {
+      if (input.hasManagement && input.canCall) {
+        return evalResult("pass", {
+          summary: "Management API capability available for this assessment",
+          expected: "Management token when project settings must be assessed",
+          actual: "available",
+          evidence: input,
+          evidenceSummary: "management available",
+        });
+      }
+      return evalResult("not_assessed", {
+        summary:
+          "Management API not provided — project Auth/log-drain settings not fully assessable",
+        expected: "Management token when project settings must be assessed",
+        actual: "not provided",
+        evidence: input,
+        evidenceSummary: "not_assessed",
+      });
+    },
+    remediation: rem("Supply scoped Management API credential for deeper checks", [
+      "Prefer least-privilege personal access tokens",
+      "Never expose tokens to the browser",
+    ]),
+    mappings: [
+      map(
+        "ism",
+        "2025",
+        "System Administration",
+        "evidence_contributes",
+        "Administrative API access posture",
+        "https://www.cyber.gov.au/ism",
+        "low",
+      ),
+    ],
+  }),
+
+  defineControl({
+    id: "sb.log_drain_evidence",
+    version: "1.0.0",
+    title: "Log drain configuration evidence",
+    description:
+      "Log drains cannot be fully verified via SQL — require manual or Management API evidence.",
+    rationale: "Central log export is required for monitoring and investigation.",
+    severity: "high",
+    categories: ["supabase", "logging"],
+    targets: ["supabase"],
+    requiredCapabilities: ["manual_evidence"],
+    collect: async (ctx) => ({
+      hasManagement: ctx.capabilities.has("supabase_management"),
+    }),
+    evaluate: (input) =>
+      evalResult("manual_review", {
+        summary: "Attach evidence of log drain / SIEM integration for this project",
+        expected: "Configured log drain with retention",
+        actual: input.hasManagement
+          ? "Management API available — still requires human confirmation of drain"
+          : "no Management API; manual evidence required",
+        evidence: input,
+        evidenceSummary: "manual log drain evidence",
+      }),
+    remediation: rem("Configure Supabase log drains", [
+      "Dashboard → Project Settings → Log Drains",
+      "Evidence destination and retention",
+    ]),
+    mappings: [
+      map(
+        "ism",
+        "2025",
+        "Log Protection",
+        "manual_validation_required",
+        "Centralised log export",
+        "https://www.cyber.gov.au/ism",
+        "high",
+      ),
+    ],
+  }),
 ];
