@@ -125,12 +125,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Bell className="h-4 w-4" />
             <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />
           </button>
-          <div
+          <Link
+            href="/login"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold"
-            aria-label="User menu"
+            aria-label="Account"
+            title="Account / sign in"
           >
             AC
-          </div>
+          </Link>
         </header>
 
         <main className="flex-1 p-4 md:p-6">{children}</main>

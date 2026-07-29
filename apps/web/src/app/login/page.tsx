@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,47 +6,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoginForm } from "@/components/auth/login-form";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export default function LoginPage() {
+  const live = isSupabaseConfigured();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Sign in to SupaCompliant</CardTitle>
           <CardDescription>
-            Local demo uses the seeded organisation without live Auth. Connect
-            Supabase Auth for production deployments.
+            {live
+              ? "Use your organisation credentials. Privileged roles may require MFA when enabled by policy."
+              : "Demo mode: open the seeded workspace without live Auth, or configure Supabase env vars for production."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              defaultValue="alex@aurora.demo"
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              defaultValue="demo-only"
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-            />
-          </div>
-          <Button className="w-full" asChild>
-            <Link href="/app">Continue to demo workspace</Link>
-          </Button>
+          <LoginForm liveAuthEnabled={live} />
           <p className="text-center text-xs text-muted-foreground">
+            Independent open-source project — not affiliated with Supabase, Inc.{" "}
             <Link href="/" className="underline-offset-2 hover:underline">
-              Back to home
+              Home
             </Link>
           </p>
         </CardContent>

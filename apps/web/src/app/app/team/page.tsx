@@ -1,9 +1,15 @@
 import { demoOrg } from "@/lib/demo-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { InviteForm } from "@/components/auth/invite-form";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import Link from "next/link";
 
 export default function TeamPage() {
+  const live = isSupabaseConfigured();
+  // Demo org id placeholder — live invites require a real organisation UUID
+  const demoOrgId = "00000000-0000-4000-8000-000000000001";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -13,7 +19,12 @@ export default function TeamPage() {
             Organisation memberships and invitations
           </p>
         </div>
-        <Button>Invite member</Button>
+        <Link
+          href="/app/onboarding"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          Create organisation
+        </Link>
       </div>
       <Card>
         <CardHeader>
@@ -34,6 +45,15 @@ export default function TeamPage() {
               </Badge>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Invite member</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InviteForm organisationId={demoOrgId} enabled={live} />
         </CardContent>
       </Card>
     </div>
