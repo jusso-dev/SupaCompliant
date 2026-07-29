@@ -1,0 +1,11 @@
+{
+  "name": "@supacompliant/config",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'ok'",
+    "typecheck": "echo 'ok'",
+    "test": "echo 'ok'",
+    "lint": "echo 'ok'"
+  }
+}

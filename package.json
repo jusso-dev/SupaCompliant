@@ -1,0 +1,33 @@
+{
+  "name": "supacompliant",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Continuous database assurance for Supabase and PostgreSQL",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build && pnpm -r --filter=./apps/* build",
+    "dev": "pnpm --parallel --filter @supacompliant/web --filter @supacompliant/worker dev",
+    "dev:web": "pnpm --filter @supacompliant/web dev",
+    "dev:worker": "pnpm --filter @supacompliant/worker dev",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --filter=./packages/* test && pnpm --filter @supacompliant/web test",
+    "test:unit": "pnpm -r --filter=./packages/* test",
+    "test:e2e": "pnpm --filter @supacompliant/web test:e2e",
+    "db:generate": "pnpm --filter @supacompliant/database generate",
+    "db:migrate": "pnpm --filter @supacompliant/database migrate",
+    "db:seed": "pnpm --filter @supacompliant/database seed",
+    "check:rls": "node scripts/check-rls-coverage.mjs",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\"",
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm check:rls"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

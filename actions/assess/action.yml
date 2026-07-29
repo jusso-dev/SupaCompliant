@@ -1,0 +1,44 @@
+name: SupaCompliant Assess
+description: Run SupaCompliant database assessment and upload SARIF
+inputs:
+  database-url:
+    description: Read-only PostgreSQL URL (prefer secrets)
+    required: true
+  fail-on:
+    description: critical | high | none
+    required: false
+    default: critical
+  allow-private:
+    description: Allow private network targets (staging only)
+    required: false
+    default: "0"
+runs:
+  using: composite
+  steps:
+    - name: Assess
+      shell: bash
+      env:
+        SUPACOMPLIANT_DATABASE_URL: ${{ inputs.database-url }}
+        SUPACOMPLIANT_ALLOW_PRIVATE: ${{ inputs.allow-private }}
+      run: |
+        set -euo pipefail
+        cd "${{ github.action_path }}/../.."
+        pnpm install --filter @supacompliant/cli...
+        pnpm --filter @supacompliant/shared build
+        pnpm --filter @supacompliant/assessment-engine build
+        pnpm --filter @supacompliant/control-library build
+        pnpm --filter @supacompliant/framework-mappings build
+        pnpm --filter @supacompliant/reporting build
+        FAIL_ARGS=()
+        if [ "${{ inputs.fail-on }}" != "none" ]; then
+          FAIL_ARGS=(--fail-on "${{ inputs.fail-on }}")
+        fi
+        pnpm --filter @supacompliant/cli exec tsx src/index.ts assess \
+          --output sarif \
+          --out supacompliant.sarif.json \
+          "${FAIL_ARGS[@]}"
+    - name: Upload SARIF
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: supacompliant.sarif.json

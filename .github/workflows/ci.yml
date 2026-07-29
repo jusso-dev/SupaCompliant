@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm --filter @supacompliant/shared build
+      - run: pnpm --filter @supacompliant/assessment-engine build
+      - run: pnpm --filter @supacompliant/control-library build
+      - run: pnpm --filter @supacompliant/framework-mappings build
+      - run: pnpm --filter @supacompliant/reporting build
+      - run: pnpm --filter @supacompliant/database build
+      - run: pnpm test
+      - run: pnpm check:rls

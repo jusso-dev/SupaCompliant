@@ -1,0 +1,30 @@
+{
+  "name": "@supacompliant/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "echo 'ok'"
+  },
+  "dependencies": {
+    "@supacompliant/assessment-engine": "workspace:*",
+    "@supacompliant/control-library": "workspace:*",
+    "@supacompliant/database": "workspace:*",
+    "@supacompliant/framework-mappings": "workspace:*",
+    "@supacompliant/reporting": "workspace:*",
+    "@supacompliant/shared": "workspace:*",
+    "pg": "^8.13.1",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

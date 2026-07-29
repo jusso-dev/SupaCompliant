@@ -1,0 +1,41 @@
+SupaCompliant
+Copyright 2026 SupaCompliant contributors
+
+================================================================================
+NOT AFFILIATED WITH SUPABASE
+================================================================================
+
+SupaCompliant is an INDEPENDENT open-source project.
+
+It is NOT affiliated with, endorsed by, sponsored by, partnered with, or
+officially connected to Supabase, Inc. in any way.
+
+It is NOT an official Supabase product, plugin, marketplace listing, or
+partner offering unless Supabase, Inc. explicitly states otherwise under
+its own brand.
+
+"Supabase" is a trademark of Supabase, Inc. All rights in that mark belong
+to Supabase, Inc. References to Supabase in this project describe only
+compatible database and platform targets that can be assessed using
+read-only credentials supplied by the user.
+
+Do not represent SupaCompliant as:
+  - an official Supabase tool
+  - Supabase-endorsed
+  - Supabase-certified
+  - a substitute for Supabase support or security reviews
+
+Other product and framework names (including but not limited to PostgreSQL,
+Australian Signals Directorate / ISM / Essential Eight, NIST, OWASP, CIS,
+SOC 2, ISO/IEC 27001, PCI DSS) are trademarks of their respective owners
+and are used only for descriptive reference. No certification or
+accreditation is implied.
+
+================================================================================
+
+This product includes software developed by SupaCompliant contributors.
+Licensed under the Apache License, Version 2.0.
+
+Portions of the UI visual language are inspired by shadcndashboard
+(https://github.com/shadcndashboard/shadcndashboard), licensed under MIT.
+See that project's LICENSE for details.

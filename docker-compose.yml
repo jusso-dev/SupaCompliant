@@ -1,0 +1,38 @@
+services:
+  db:
+    image: supabase/postgres:15.8.1.060
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - sc_pg:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      # Demo mode: no live DB required for UI
+    depends_on:
+      - db
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+      SUPACOMPLIANT_KEK: ${SUPACOMPLIANT_KEK:-}
+      LOG_LEVEL: info
+    depends_on:
+      - db
+
+volumes:
+  sc_pg:
